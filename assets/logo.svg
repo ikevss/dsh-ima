@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="dsh-ima">
+  <title>dsh-ima — ima 知识库 × DeepSeek Harness</title>
+
+  <defs>
+    <!-- 背景渐变：从 DSH 的品牌蓝过渡到 ima 的青绿 -->
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2F6BFF"/>
+      <stop offset="100%" stop-color="#0FA3A3"/>
+    </linearGradient>
+    <!-- 书页高光 -->
+    <linearGradient id="page" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#E8F2FF"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 底板：圆角方块 -->
+  <rect x="8" y="8" width="240" height="240" rx="56" fill="url(#bg)"/>
+
+  <!-- 知识库：三层堆叠 -->
+  <g opacity="0.28">
+    <rect x="60" y="70" width="136" height="26" rx="13" fill="#fff"/>
+    <rect x="52" y="104" width="152" height="26" rx="13" fill="#fff"/>
+  </g>
+
+  <!-- 知识库：最上层（实心书页） -->
+  <rect x="44" y="138" width="168" height="30" rx="15" fill="url(#page)"/>
+
+  <!-- 检索/命中：放大镜压在书页右下 -->
+  <g>
+    <circle cx="150" cy="150" r="30" fill="none" stroke="#0B1B33" stroke-width="11" opacity="0.9"/>
+    <circle cx="150" cy="150" r="30" fill="#0B1B33" opacity="0.12"/>
+    <!-- 镜内命中点 -->
+    <circle cx="150" cy="150" r="8" fill="#FFD34D"/>
+    <circle cx="150" cy="150" r="8" fill="none" stroke="#0B1B33" stroke-width="3.5"/>
+    <!-- 镜柄 -->
+    <line x1="172" y1="172" x2="196" y2="196" stroke="#0B1B33" stroke-width="14" stroke-linecap="round"/>
+  </g>
+
+  <!-- 写入：右下角加号徽标 -->
+  <g>
+    <circle cx="196" cy="76" r="30" fill="#FFD34D" stroke="#0B1B33" stroke-width="7"/>
+    <line x1="196" y1="62" x2="196" y2="90" stroke="#0B1B33" stroke-width="9" stroke-linecap="round"/>
+    <line x1="182" y1="76" x2="210" y2="76" stroke="#0B1B33" stroke-width="9" stroke-linecap="round"/>
+  </g>
+</svg>

@@ -4,6 +4,9 @@
 [![Listed on dsh-plugin.org](https://dsh-plugin.org/badges/listed.svg)](https://dsh-plugin.org/plugins/ikevss/dsh-ima)
 [![Version](https://img.shields.io/badge/version-1.11.1-blue)](./CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
+[![npm](https://img.shields.io/npm/v/ik-dsh-ima?label=npm&color=0891b2&logo=npm)](https://www.npmjs.com/package/ik-dsh-ima)
+
+<img src="assets/logo-256.png" alt="dsh-ima" width="120" align="right">
 
 > 把腾讯 [ima](https://ima.qq.com) 的知识库接进 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)：侧边栏浏览知识库，**agent 能自动检索、读取，也能往里写**。
 
@@ -144,7 +147,13 @@ node build/build.mjs         # 重新打包客户端
 
 把 `web` 换成你要装的 profile 名即可（桌面端用 `desktop`）。
 
-**从预构建包安装** —— 最快，不需要 git，也不需要本地构建：
+**从 npm 安装**（最简单，包名是 `ik-dsh-ima`）：
+
+```bash
+dsh plugin --profile web add ik-dsh-ima
+```
+
+**从 GitHub 预构建包安装** —— 不需要 git，也不需要本地构建：
 
 ```bash
 dsh plugin --profile web add https://github.com/ikevss/dsh-ima/releases/latest/download/dsh-ima.tgz
@@ -160,6 +169,8 @@ dsh plugin --profile web add git+https://github.com/ikevss/dsh-ima.git
 
 > ⚠️ **不要写成 `github:ikevss/dsh-ima`。** npm 会把 `github:` 这种简写解析成 **SSH** 地址（`ssh://git@github.com/...`），没配过 SSH key 的机器会直接报
 > `Permission denied (publickey)` 装不上。要让人人都能装，必须用上面的 `git+https://` 形式或 tarball 链接。
+
+> 💡 包名是 `ik-dsh-ima`，仓库名和目录名是 `dsh-ima`。`dsh-ima` 这个 npm 名在 2026-09 被别人发布后又撤回，名字已被锁定、无法再申请。
 
 > 💡 预构建 tarball 里已经包含编译好的 `lib/client.js`，所以安装时不会触发构建；从源码装也一样，`lib/` 是随仓库提交的。
 
@@ -178,13 +189,13 @@ git clone https://github.com/ikevss/dsh-ima.git ~/.dsh/plugins/dsh-ima
 ```jsonc
 {
   "dependencies": {
-    "dsh-ima": "file:../../plugins/dsh-ima"   // ← 新增
+    "ik-dsh-ima": "file:../../plugins/dsh-ima"   // ← 新增
   },
   "dsh": {
     "profile": {
       "bundles": [
         // ...原有内容...
-        "dsh-ima"                               // ← 新增
+        "ik-dsh-ima"                              // ← 新增
       ]
     }
   }
@@ -196,8 +207,10 @@ git clone https://github.com/ikevss/dsh-ima.git ~/.dsh/plugins/dsh-ima
 ```yaml
 - insert:
     - id: dsh-ima
-      name: dsh-ima
+      name: ik-dsh-ima
 ```
+
+> 包名是 `ik-dsh-ima`（`dsh-ima` 在 npm 上已被别人占用过、无法使用），目录名和仓库名仍叫 `dsh-ima`。
 
 **4. 把插件文件拷进 profile 的 node_modules**（不要用 `pnpm add`，容易搞坏 profile 的依赖解析）：
 

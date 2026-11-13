@@ -1,8 +1,9 @@
 {
-  "name": "dsh-ima",
+  "name": "ik-dsh-ima",
   "version": "1.11.1",
-  "description": "腾讯 ima 知识库接入 DeepSeek Harness：侧边栏浏览知识库与文件，并让 agent 自动检索、调用库内文件",
+  "description": "腾讯 ima 知识库接入 DeepSeek Harness：侧边栏浏览、AI 检索、文件上传（能读也能写）",
   "main": "lib/index.js",
+  "icon": "assets/logo-256.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/ikevss/dsh-ima.git"
@@ -45,10 +46,20 @@
   },
   "files": [
     "lib",
-    "build",
+    "assets",
     "cordis.patch.yml",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE"
+  ],
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "dsh-plugin",
+    "ima",
+    "tencent",
+    "knowledge-base",
+    "plugin"
   ],
   "scripts": {
     "build": "node build/build.mjs",
