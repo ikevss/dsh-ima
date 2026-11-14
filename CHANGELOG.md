@@ -4,6 +4,12 @@
 
 ## [1.11.1] - 2026-11-13
 
+### 发布渠道
+- **发布到 npm**：`ik-dsh-ima@1.11.1`（`dsh-ima` 这个 npm 名在 2026-09-04 被他人发布后撤回，已被 Registry 锁定，无法申请，故加 `ik-` 前缀）
+- **提交 Open Plugin Market 收录**（dshopen.org）
+- **新增 Logo**：蓝青渐变底 + 三层知识库 + 放大镜（检索）+ 黄加号（写入），`assets/logo.svg` + 64/256/512/1024 四档 PNG
+- 仓库名与目录名仍为 `dsh-ima`；`package.json` 的 `name`、`cordis.patch.yml` 的 `name`、`__ModuleLoader__` 的模块 id 统一为 `ik-dsh-ima`
+
 ### 修复
 - **修掉 React error #310**（"界面出了点问题"红框）。原因是「点击浮窗外部关闭」的 `useEffect` 写在了 `if (!status.bound) return` 之后——未绑定时组件提前返回、执行不到，绑定后 Hook 数量从 N 变 N+1。已移到组件顶部，并新增 `test/verify-hooks.js` 静态检查，防止再犯。
 - 补样式时漏了两个字符导致的语法错误（构建期发现并修复）。
