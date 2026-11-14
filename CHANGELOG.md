@@ -2,19 +2,23 @@
 
 本文件记录每个版本的变化。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
-## [1.11.1] - 2026-11-13
+## [1.11.1] - 2026-11-14
 
 ### 发布渠道
 - **发布到 npm**：`ik-dsh-ima@1.11.1`（`dsh-ima` 这个 npm 名在 2026-09-04 被他人发布后撤回，已被 Registry 锁定，无法申请，故加 `ik-` 前缀）
 - **提交 Open Plugin Market 收录**（dshopen.org）
+- **提交 dsh-plugin.org 更新**（页面此前停留在 v1.7.2，安装命令也是会失败的 `github:` 形式）
 - **新增 Logo**：蓝青渐变底 + 三层知识库 + 放大镜（检索）+ 黄加号（写入），`assets/logo.svg` + 64/256/512/1024 四档 PNG
 - 仓库名与目录名仍为 `dsh-ima`；`package.json` 的 `name`、`cordis.patch.yml` 的 `name`、`__ModuleLoader__` 的模块 id 统一为 `ik-dsh-ima`
+
+### 改进
+- **界面中文名统一为「腾讯ima知识库」**（原为「知识库 ima」），侧边栏入口和面板标题一致。
 
 ### 修复
 - **修掉 React error #310**（"界面出了点问题"红框）。原因是「点击浮窗外部关闭」的 `useEffect` 写在了 `if (!status.bound) return` 之后——未绑定时组件提前返回、执行不到，绑定后 Hook 数量从 N 变 N+1。已移到组件顶部，并新增 `test/verify-hooks.js` 静态检查，防止再犯。
 - 补样式时漏了两个字符导致的语法错误（构建期发现并修复）。
 
-### 改进
+### 动效
 - 预览打开/返回加淡入过渡（220ms），不再"啪"一下出现。
 - 上传进度：进行中的行加左侧呼吸竖条 + 底部流动进度条，多文件同时传也能分清哪个在动。
 - 拖拽遮罩改为常驻 DOM + opacity 过渡，拖文件时不再闪烁。

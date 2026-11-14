@@ -1001,7 +1001,7 @@ class PanelBoundary extends React.Component {
   render() {
     if (this.state.err) {
       return h('div', { className: 'dsh-ima-root' },
-        h('div', { className: 'dsh-ima-head' }, h('span', { className: 'dsh-ima-title' }, '知识库 ima')),
+        h('div', { className: 'dsh-ima-head' }, h('span', { className: 'dsh-ima-title' }, '腾讯ima知识库')),
         h('div', { className: 'dsh-ima-main' },
           h('div', { className: 'dsh-ima-alert', style: { margin: '12px 16px' }, role: 'alert' },
             '界面出了点问题：' + String((this.state.err && this.state.err.message) || this.state.err)),
@@ -1414,7 +1414,7 @@ function ImaPage(props) {
   // ── 未绑定 ──
   if (!status || !status.bound) {
     return h('div', { className: 'dsh-ima-root' },
-      h('div', { className: 'dsh-ima-head' }, h('span', { className: 'dsh-ima-title' }, '知识库 ima')),
+      h('div', { className: 'dsh-ima-head' }, h('span', { className: 'dsh-ima-title' }, '腾讯ima知识库')),
       h('div', { className: 'dsh-ima-body' },
         h('div', { className: 'dsh-ima-center' },
           showBind
@@ -1655,7 +1655,7 @@ function ImaPage(props) {
   },
     h('div', { className: 'dsh-ima-drop' + (dragOver ? ' dsh-ima-drop-on' : '') }, '松手即可上传到「' + (curKb ? curKb.name : '') + '」'),
     h('div', { className: 'dsh-ima-head' },
-      h('span', { className: 'dsh-ima-title' }, '知识库 ima'),
+      h('span', { className: 'dsh-ima-title' }, '腾讯ima知识库'),
       h('span', { className: 'dsh-ima-badge' }, '已绑定 ima 知识库'),
       h('span', { className: 'dsh-ima-spacer' }),
       updatedAt ? h('span', { className: 'dsh-ima-stamp', title: 'ima 不支持增量同步，这里显示上次从 ima 获取数据的时间' }, '更新于 ' + fmtTime(updatedAt)) : null,
@@ -2252,7 +2252,7 @@ function apply(ctx) {
       name: 'sidebar.panellist',
       id: PANEL_ID,
       order: 0,
-      label: '知识库 ima',
+      label: '腾讯ima知识库',
     }, PanelGlyph)
   })
 
