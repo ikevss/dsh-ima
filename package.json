@@ -1,14 +1,15 @@
 {
   "name": "ik-dsh-ima",
-  "version": "1.11.2",
+  "version": "1.11.3",
   "description": "腾讯ima知识库接入 DeepSeek Harness：侧边栏浏览、跨库搜正文、上传文件（能读也能写）",
   "main": "lib/index.js",
   "icon": "assets/logo-256.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ikevss/dsh-ima.git"
+    "url": "git+https://github.com/ikevss/dsh-ima.git",
+    "directory": "."
   },
-  "homepage": "https://github.com/ikevss/dsh-ima",
+  "homepage": "https://github.com/ikevss/dsh-ima#readme",
   "bugs": {
     "url": "https://github.com/ikevss/dsh-ima/issues"
   },
@@ -63,7 +64,9 @@
   ],
   "scripts": {
     "build": "node build/build.mjs",
-    "test": "node test/smoke.js"
+    "test": "node test/smoke.js",
+    "verify": "node test/verify-package.js",
+    "prepublishOnly": "node test/verify-package.js"
   },
   "devDependencies": {
     "@open-file-viewer/core": "1.0.0",

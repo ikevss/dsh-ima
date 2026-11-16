@@ -2,6 +2,16 @@
 
 本文件记录每个版本的变化。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.11.3] - 2026-11-16
+
+### 新增
+- **README 补「授权说明」一节**：明确凭据归属（属于用户自己的 ima 账号）、存放位置与文件权限、能碰谁的数据、能否转给别人、怎么收回、有效期怎么算、写操作触发条件、读到内容去向。此前只有「访问了哪些域名/文件」，缺了授权本身，插件市场页面抓取 README 时会缺这一块。
+- **新增 `test/verify-package.js` 发布前自检**，并挂到 `prepublishOnly`：任何一次 `npm publish` 之前自动跑，检查 `repository` / `homepage` / `bugs` 是否完整且指向本仓库、`keywords` 是否含 `dsh-plugin`、`files` 是否包含必需产物、有无安装期自动执行脚本。
+
+### 修复
+- **把 `repository` 变成不可误删的硬约束**。Open Plugin Market 审核反馈明确要求保留该字段——包名 `ik-dsh-ima` 与仓库名 `dsh-ima` 不一致，市场完全依赖 `repository` 字段把包和仓库绑起来，删了就认不回来。已实测：删掉该字段后自检退出码为 1，`npm publish` 会被直接拦下。
+- `repository.url` 规范化为 `git+https://` 并补 `directory` 字段；`homepage` 由裸仓库地址改为 `#readme` 锚点（指向仓库首页而非模糊地址）。
+
 ## [1.11.2] - 2026-11-14
 
 ### 改进
