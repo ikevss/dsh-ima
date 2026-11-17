@@ -254,7 +254,7 @@ cp ~/.dsh/plugins/dsh-ima/lib/*.js ~/.dsh/profiles/desktop/node_modules/dsh-ima/
 | **读取的本地文件** | `~/.dsh/storages/dsh-ima/credentials.json`（插件自己的凭证）；取不到时回退读 `~/.config/ima/{client_id,api_key}`（ima 官方技能的标准位置）。除这两个位置外不读任何本地文件 |
 | **写入的本地文件** | 只在 `~/.dsh/storages/dsh-ima/` 下写凭证与绑定用的浏览器 profile；**不碰 `~/.config/ima/`**（那是 ima 自己技能的资产，解绑只用标记文件） |
 | **启动的进程** | 仅「一键绑定」时会拉起你本机的 Chrome / Edge，带 `--remote-debugging-port=9333`（只监听 `127.0.0.1`），用完即关 |
-| **本机 HTTP 路由** | `/api/ima/*`，由 DSH 的 webServer 提供，与 DSH 面板同源。之所以要这层中转，是因为 ima 的接口不返回 CORS 头，浏览器不能直连 |
+| **本机 HTTP 路由** | `/api/ima/*`，由 DSH 的 webServer 提供，与 DSH 面板同源。之所以要这层中转，是因为 ima 的接口不返回 CORS 头，浏览器不能直连。**每个请求都先过 DSH `connection` 的浏览器准入检查**（同源会话 cookie），未通过直接 401，外部进程拿不到你的知识库内容 |
 | **安装期脚本** | **没有**。`package.json` 里没有 `postinstall`/`prepare`，装的时候不会执行任何脚本 |
 | **遥测 / 上报** | **没有**。不收集、不上传任何数据到第三方；除了上面那个域名不连任何服务器 |
 
@@ -272,6 +272,7 @@ cp ~/.dsh/plugins/dsh-ima/lib/*.js ~/.dsh/profiles/desktop/node_modules/dsh-ima/
 | **有效期** | ima 侧一般一年。**具体过期时间 ima 接口不返回**，所以插件只显示「最近一次验证成功距今多久」，不编造一个假的倒计时 |
 | **能写什么** | 只有你主动点「上传」/拖进面板的文件、或你主动贴进去的网页链接。**没有后台自动上传**，也没有任何定时任务 |
 | **读到的内容会去哪** | 只在本地渲染给你看，或在你点「引用到对话」时作为对话上下文交给模型。交不交给模型，完全由你的点击决定 |
+| **别的程序能调它的接口吗** | **不能**。`/api/ima/*` 挂在 DSH 的 webServer 上，但每个请求先过 DSH `connection` 的浏览器准入（同源会话 cookie）。本机其他进程、脚本、以及能访问该端口的任何程序都拿不到这个 cookie，会被 401 挡在外面 —— 所以它们看不到你知识库里的任何内容，也没法替你上传文件 |
 
 > 一句话：**凭据在你机器上，读写在你的点击之后，解绑立刻失效。** 想核实代码：`grep -n "credentials.json\|apiKey" lib/ima-client.js`。
 

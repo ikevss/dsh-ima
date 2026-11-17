@@ -2,6 +2,20 @@
 
 本文件记录每个版本的变化。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.11.4] - 2026-11-18
+
+### 安全
+- **`/api/ima/*` 接入 DSH Connection 准入**（按 Open Plugin Market 审核反馈）。此前路由直接挂在 `webServer` 上，只依赖本机端口可访问性，任何能连到这个端口的进程都能读取用户 ima 知识库的真实内容。
+
+  现在：
+  - 同时注入 `webServer` 与 `connection`
+  - 每个请求进来**第一件事**是 `connection.isAuthenticated(req)`（同源会话 cookie），早于参数解析和路由分发
+  - 未通过 → 调 `connection.writeUnauthorized()` 写 401 并立即返回，绝不下沉到业务逻辑
+  - `isAuthenticated` 抛错时按**未通过**处理（fail-closed），不会因为异常而放行
+  - `connection` 服务不可用时**整段路由不注册** —— 宁可不提供能力，也不暴露一个裸接口
+
+  新增 `test/verify-auth-guard.js`：校验准入存在、顺序正确（早于路由分发与参数解析），并用模拟请求验证三种情形（未准入/已准入/检查抛错）的行为。
+
 ## [1.11.3] - 2026-11-16
 
 ### 新增
