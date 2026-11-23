@@ -178,6 +178,13 @@ var CSS = [
   '.dsh-ima-uprow-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--dsw-alias-label-primary,#1a1a1a)}',
   '.dsh-ima-btn:hover .dsh-ima-ico,.dsh-ima-actbtn:hover .dsh-ima-ico{opacity:.85}',
 
+  // 整段粘贴框：等宽字体，让用户能看清粘进来的是什么
+  '.dsh-ima-paste{width:100%;box-sizing:border-box;margin-top:8px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.86em;line-height:1.5;padding:9px 11px;border-radius:var(--ima-r-sm);border:1px solid var(--dsw-alias-border-l2,rgba(0,0,0,.14));background:var(--dsw-alias-bg-layer-1,#fff);color:var(--dsw-alias-label-primary,#1a1a1a);resize:vertical;min-height:64px}',
+  '.dsh-ima-paste:focus{outline:none;border-color:var(--dsw-alias-brand-primary,#3b6cf6);box-shadow:0 0 0 2px color-mix(in srgb,var(--dsw-alias-brand-primary,#3b6cf6) 18%,transparent)}',
+  '.dsh-ima-paste::placeholder{color:var(--dsw-alias-label-tertiary,#999);font-family:var(--dsw-font-family,inherit)}',
+  // 凭证还没齐时，主按钮别做成"看起来能点"
+  '.dsh-ima-btn-dim{background:color-mix(in srgb,var(--dsw-alias-brand-primary,#3b6cf6) 45%,transparent);border-color:transparent;color:#fff}',
+
   // ══ 动效基础 ══════════════════════════════════════════
   // 数据来自远程接口，300ms~3s 的等待必须有反馈，否则像"卡住"。
   // 时长规则：交互反馈 120ms / 状态过渡 180ms / 内容进出 220~260ms。
@@ -1973,11 +1980,18 @@ function parseCreds(text) {
 }
 
 function BindDialog(props) {
-  var ms = React.useState('idle'); var mode = ms[0], setMode = ms[1]
+  // 默认直接进「粘贴绑定」页 —— 实测「一键绑定」在多数环境走不通
+  // （浏览器调试端口被占、剪贴板读不到），与其让用户先撞墙再退回，
+  // 不如一开始就给能走通的那条路。idle 页只作为"本机已有凭证"的快捷入口保留。
+  var ms = React.useState('manual'); var mode = ms[0], setMode = ms[1]
   var ss = React.useState(''); var stepText = ss[0], setStepText = ss[1]
   var er = React.useState(''); var errMsg = er[0], setErrMsg = er[1]
   // 记录失败类型：决定要不要额外给一个"改用手动"的按钮
   var fk = React.useState(''); var failKind = fk[0], setFailKind = fk[1]
+  // 整段粘贴的原文（保留在框里，让用户能看到自己粘了什么）
+  var pr = React.useState(''); var pasteRaw = pr[0], setPasteRaw = pr[1]
+  // 高级项：自动拆不出来时才展开手填
+  var adv = React.useState(false); var showAdvanced = adv[0], setShowAdvanced = adv[1]
   var cs = React.useState(''); var clientId = cs[0], setClientId = cs[1]
   var ks = React.useState(''); var apiKey = ks[0], setApiKey = ks[1]
   var ls = React.useState(null); var local = ls[0], setLocal = ls[1]
@@ -2193,70 +2207,149 @@ function BindDialog(props) {
       setBusy(true); setErrMsg('')
       props.onBind(clientId, apiKey).then(function (ok) {
         if (ok) finish()
-        else setErrMsg('这两串码没通过验证。多半是没复制全，或者混进了空格。重新复制一次试试。')
+        else setErrMsg('这两串码没通过 ima 的验证。\n办法：回 ima 页面重新点「一键复制」，把复制到的整段文字直接粘到上面的框里 —— 不要只挑其中一部分。')
       }).catch(function () {}).then(function () { setBusy(false) })
     }
+    /**
+     * 从剪贴板取：优先"整段粘贴自动拆"，拆不出来再把原文放进大框让用户看清。
+     */
     var fromClip = function () {
       setErrMsg('')
       try {
         navigator.clipboard.readText().then(function (t) {
+          if (!t || !t.trim()) { setErrMsg('剪贴板是空的。请先在 ima 页面点「一键复制」。'); return }
+          setPasteRaw(t)
           var r = parseCreds(t)
           if (r.clientId) setClientId(r.clientId)
           if (r.apiKey) setApiKey(r.apiKey)
           if (r.clientId && r.apiKey) setErrMsg('')
-          else if (!r.clientId && !r.apiKey) setErrMsg('剪贴板里没找到那两串码。请先在 ima 页面点复制。')
-          else setErrMsg('只找到一半，另一串再复制一次。')
-        }, function () { setErrMsg('浏览器不允许读剪贴板，只能在下面手动粘贴了。') })
-      } catch (e) { setErrMsg('这个环境读不到剪贴板，只能在下面手动粘贴了。') }
+          else if (!r.clientId && !r.apiKey) setErrMsg('剪贴板里的文字里没认出凭证。可以把它整段粘到下面的框里试试，或确认复制的是「一键复制」那一项。')
+          else setErrMsg('只认出其中一串，另一串可能没复制全。建议整段粘到下面的框里。')
+        }, function () {
+          setErrMsg('浏览器不允许读剪贴板（这很常见）。请在 ima 页面点「一键复制」，然后到这里按 Ctrl+V 粘到下面的框里。')
+        })
+      } catch (e) { setErrMsg('这个环境读不到剪贴板。请在下面手动粘贴。') }
     }
-    return h('div', { className: 'dsh-ima-dlg' },
-      h('h3', null, '自己填（最后兜底方式）'),
-      h('div', { className: 'dsh-ima-note', style: { marginTop: '10px' } },
-        '这个方式要你手动复制两串码，比较麻烦。如果前面的「一键绑定」还能用，建议退回去用它。'),
 
+    /** 用户把整段文字粘进大框：自动拆出两个值 */
+    var onPasteAll = function (text) {
+      setPasteRaw(text)
+      setErrMsg('')
+      var r = parseCreds(text)
+      if (r.clientId) setClientId(r.clientId)
+      if (r.apiKey) setApiKey(r.apiKey)
+      if (r.clientId && r.apiKey) {
+        setErrMsg('')
+      } else if (r.clientId || r.apiKey) {
+        setErrMsg('只认出其中一串。请确认整段都粘进来了（包括 Client ID 和 API Key 两行）。')
+      }
+    }
+
+    var ready = clientId.trim() && apiKey.trim()
+
+    return h('div', { className: 'dsh-ima-dlg' },
+      h('h3', null, '绑定 ima 账号'),
+      h('div', { className: 'dsh-ima-note', style: { marginTop: '10px' } },
+        '一共两步：打开 ima 页面复制，回来粘一次就好。'),
+
+      // ── 步骤 1 ──
       h('div', { className: 'dsh-ima-step' },
         h('span', { className: 'dsh-ima-stepno' }, '1'),
-        h('div', null,
-          h('div', null, '打开 ima 授权页并登录'),
-          h('button', { className: 'dsh-ima-btn', style: { marginTop: '8px' }, onClick: openImaPage },
-            '打开 ima 页面'),
+        h('div', { style: { flex: 1, minWidth: 0 } },
+          h('div', null, '打开 ima 授权页，登录'),
+          h('div', { className: 'dsh-ima-note', style: { marginTop: '4px', fontSize: '.94em' } },
+            '在页面第 1 步点「一键复制」—— Client ID 和 API Key 会一起复制出来。'),
+          h('div', { style: { display: 'flex', gap: '8px', marginTop: '8px' } },
+            h('button', { className: 'dsh-ima-btn', onClick: openImaPage }, '打开 ima 页面'),
+          ),
         ),
       ),
+
+      // ── 步骤 2 ──
       h('div', { className: 'dsh-ima-step' },
         h('span', { className: 'dsh-ima-stepno' }, '2'),
-        h('div', null,
-          h('div', null, '点第 1 步那个「一键复制」按钮'),
-          h('button', { className: 'dsh-ima-btn dsh-ima-btn-p', style: { marginTop: '8px' }, onClick: fromClip },
-            '从剪贴板自动填入'),
+        h('div', { style: { flex: 1, minWidth: 0 } },
+          h('div', null, '把复制到的内容粘到下面'),
+          h('textarea', {
+            className: 'dsh-ima-paste',
+            value: pasteRaw,
+            placeholder: '在这里按 Ctrl+V 粘贴。整段粘进来就行，会自动拆出 Client ID 和 API Key。',
+            spellCheck: false,
+            rows: 3,
+            onChange: function (e) { onPasteAll(e.target.value) },
+          }),
+          h('div', { style: { display: 'flex', gap: '8px', marginTop: '8px' } },
+            h('button', { className: 'dsh-ima-btn', onClick: fromClip }, '从剪贴板读取'),
+          ),
         ),
       ),
 
-      h('div', { className: 'dsh-ima-filled', style: { marginTop: '16px' } },
-        h('div', { style: { marginBottom: '6px', color: 'var(--dsw-alias-label-primary,#1a1a1a)' } },
-          '⚠️ 注意：API Key 不在页面上显示'),
-        h('div', null, 'ima 页面上只能看到 Client ID。API Key 藏在第 1 步「一键复制」复制出来的那段文字里 —— 点一下那个按钮，两个值就都在剪贴板了。'),
-        h('div', { style: { marginTop: '6px' } }, '这两串码只存在你这台电脑上，不会上传到别处。'),
+      // ── 识别结果：只读展示，让用户确认 ──
+      (clientId || apiKey)
+        ? h('div', { className: 'dsh-ima-filled', style: { marginTop: '14px' } },
+            h('div', null,
+              h('span', { style: { color: clientId ? 'var(--dsw-alias-state-success-primary,#1a9e6a)' : 'var(--dsw-alias-label-tertiary,#999)' } },
+                clientId ? '✓' : '○'),
+              ' Client ID：' + (clientId ? clientId.slice(0, 6) + '…' + clientId.slice(-4) + '（' + clientId.length + ' 位）' : '未识别')),
+            h('div', { style: { marginTop: '4px' } },
+              h('span', { style: { color: apiKey ? 'var(--dsw-alias-state-success-primary,#1a9e6a)' : 'var(--dsw-alias-label-tertiary,#999)' } },
+                apiKey ? '✓' : '○'),
+              ' API Key：' + (apiKey ? '已识别（' + apiKey.length + ' 位）' : '未识别')),
+          )
+        : null,
+
+      // ── 折叠的高级项：个别情况下自动拆不出来，允许手填 ──
+      h('div', { style: { marginTop: '10px' } },
+        h('button', {
+          className: 'dsh-ima-link',
+          onClick: function () { setShowAdvanced(!showAdvanced) },
+        }, showAdvanced ? '收起手动填写' : '识别不出来？分开手动填'),
+        showAdvanced
+          ? h('div', { style: { marginTop: '10px' } },
+              h('div', { className: 'dsh-ima-f' },
+                h('label', null, 'Client ID ', h('span', { style: { fontWeight: 400 } }, '— 32 位')),
+                h('input', {
+                  value: clientId,
+                  onChange: function (e) { setClientId(e.target.value.trim()) },
+                  placeholder: 'a1b2c3d4e5f6789012345678abcd1234',
+                  spellCheck: false,
+                  autoComplete: 'off',
+                }),
+              ),
+              h('div', { className: 'dsh-ima-f' },
+                h('label', null, 'API Key ', h('span', { style: { fontWeight: 400 } }, '— 约 76 位，以 == 结尾')),
+                h('input', {
+                  value: apiKey,
+                  onChange: function (e) { setApiKey(e.target.value.trim()) },
+                  placeholder: '粘贴 API Key',
+                  type: 'password',
+                  spellCheck: false,
+                  autoComplete: 'off',
+                }),
+              ),
+            )
+          : null,
       ),
 
-      h('div', { className: 'dsh-ima-f' },
-        h('label', null, 'Client ID ', h('span', { style: { fontWeight: 400 } }, '— 页面上能看到，32 位字母数字')),
-        h('input', { value: clientId, onChange: function (e) { setClientId(e.target.value) }, placeholder: '例如 a1b2c3d4e5f6789012345678abcd1234', spellCheck: false }),
-      ),
-      h('div', { className: 'dsh-ima-f' },
-        h('label', null, 'API Key ', h('span', { style: { fontWeight: 400 } }, '— 从「一键复制」的内容里取，约 76 位')),
-        h('input', { value: apiKey, onChange: function (e) { setApiKey(e.target.value) }, placeholder: '粘贴 API Key', type: 'password', spellCheck: false }),
-      ),
-
-      errMsg ? h('div', { className: 'dsh-ima-alert', style: { margin: '10px 0 0' }, role: 'alert' }, h(DshIcon, { name: 'warning-outline', size: 15 }), h('div', { className: 'dsh-ima-alert-body' }, errMsg)) : null,
+      errMsg
+        ? h('div', { className: 'dsh-ima-alert', style: { margin: '12px 0 0' }, role: 'alert' },
+            h(DshIcon, { name: 'warning-outline', size: 15 }),
+            h('div', { className: 'dsh-ima-alert-body' },
+              String(errMsg).split('\n').map(function (line, i) {
+                return h('div', { key: i, style: i === 0 ? null : { marginTop: '6px', fontSize: '.94em' } }, line)
+              }),
+            ),
+          )
+        : null,
 
       h('div', { className: 'dsh-ima-acts' },
-        h('button', { className: 'dsh-ima-btn', onClick: function () { setMode('pagewait'); setErrMsg(''); openImaPage() } },
-          '回到自动方式'),
+        h('button', { className: 'dsh-ima-btn', onClick: props.onCancel }, '取消'),
         h('button', {
-          className: 'dsh-ima-btn dsh-ima-btn-p',
-          disabled: busy || !clientId.trim() || !apiKey.trim(),
+          className: 'dsh-ima-btn dsh-ima-btn-p' + (ready ? '' : ' dsh-ima-btn-dim'),
+          disabled: busy || !ready,
+          title: ready ? '' : '还没识别到完整的凭证',
           onClick: submit,
-        }, busy ? '验证中…' : '绑定'),
+        }, busy ? '验证中…' : (ready ? '绑定' : '先粘贴凭证')),
       ),
     )
   }

@@ -1,6 +1,6 @@
 {
   "name": "ik-dsh-ima",
-  "version": "1.11.6",
+  "version": "1.12.0",
   "description": "腾讯ima知识库接入 DeepSeek Harness：侧边栏浏览、跨库搜正文、上传文件（能读也能写）",
   "main": "lib/index.js",
   "icon": "assets/logo-256.png",
