@@ -1894,6 +1894,36 @@ function ImaPage(props) {
     )
 }
 
+/**
+ * 把任意异常翻译成用户能看懂的一句话（浏览器半版本）。
+ * 规则与宿主半 lib/user-error.js 保持一致：
+ *   有中文且不含技术特征 → 直接用；命中已知类型 → 给该类型的动作；否则给兜底。
+ * 技术细节（原始 message、错误码）绝不显示在界面上。
+ */
+function errText(e, action) {
+  var raw = String((e && e.message) || e || '')
+  var code = (e && e.code) || ''
+
+  // 已经是我们写好的中文提示
+  var isHuman = /[\u4e00-\u9fff]/.test(raw) &&
+    !/Error:|at \w+\.|undefined is not|Unexpected|JSON|stack|ENOENT|ECONN/i.test(raw)
+  if (isHuman && raw.length <= 200) return raw
+
+  var HINTS = [
+    [/ENOTFOUND|EAI_AGAIN|getaddrinfo|network|fetch failed/i, '网络连不上。检查一下网络，然后重试。'],
+    [/ECONNREFUSED/i, '连接被拒绝了。请重试；一直不行就重启一下 DSH。'],
+    [/ETIMEDOUT|timeout|timed out/i, '等太久了没响应。检查网络后重试。'],
+    [/ECONNRESET|socket hang up/i, '连接中断了。重试一次通常就好。'],
+    [/auth|授权|凭证|token/i, 'ima 授权有问题，请重新绑定。'],
+    [/permission|权限|220030/i, '这个内容 ima 不开放读取，换一个试试。'],
+    [/not found|404/i, '找不到对应的内容，可能已经被移走了。'],
+  ]
+  for (var i = 0; i < HINTS.length; i++) {
+    if (HINTS[i][0].test(raw) || (code && HINTS[i][0].test(String(code)))) return HINTS[i][1]
+  }
+  return (action || '操作') + '没成功。稍后再试一次；一直不行就重启一下 DSH。'
+}
+
 // ── 绑定弹窗 ─────────────────────────────────────────────
 /**
  * 把自动绑定的失败原因翻译成「人话 + 下一步」。
@@ -1974,7 +2004,11 @@ function BindDialog(props) {
       // 本机没现成凭证（或它失效了）→ 才去开浏览器自动授权
       setLocal(null)
       startAcquire()
-    }).catch(function (e) { setErrMsg(String(e.message || e)); setMode('idle') })
+    }).catch(function (e) {
+      // 前端这一层也要兜住：网络层异常（请求根本没发出去）会说人话
+      setErrMsg(errText(e, '自动绑定'))
+      setMode('idle')
+    })
       .then(function () { setBusy(false) })
   }
 
